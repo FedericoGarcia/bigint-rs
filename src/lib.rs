@@ -28,6 +28,12 @@ impl std::fmt::Debug for BigInt {
     }
 }
 
+impl std::fmt::Display for BigInt {
+    fn fmt(&self, _formatter: &mut std::fmt::Formatter<'_>) -> Result<(), std::fmt::Error> {
+        todo!()
+    }
+}
+
 impl std::cmp::PartialEq for BigInt {
     fn eq(&self, other: &Self) -> bool {
         self.data == other.data
@@ -75,6 +81,30 @@ impl std::ops::Add for BigInt {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn should_display_bigint_with_1_byte_in_base_10() {
+        // Given
+        let bigint = BigInt::new(vec![0xE4]);
+
+        // When
+        let result = format!("{}", bigint);
+
+        // Then
+        assert_eq!(result, "228");
+    }
+
+    #[test]
+    fn should_display_bigint_with_2_bytes_in_base_10() {
+        // Given
+        let bigint = BigInt::new(vec![0xFF, 0xFF]);
+
+        // When
+        let result = format!("{}", bigint);
+
+        // Then
+        assert_eq!(result, "65536");
+    }
 
     #[test]
     fn should_create_a_bigint_from_2_bytes() {
