@@ -38,20 +38,37 @@ impl std::ops::Add for BigInt {
     type Output = Self;
 
     fn add(self, right: Self) -> Self {
-        let mut result: Self = BigInt::new(vec![]);
+        let left_data = &self.data;
+        let right_data = &right.data;
 
-        let mut previous_carry: bool = false;
+        let min_length = left_data.len().max(right_data.len());
 
-        for (index, value) in self.data.iter().enumerate() {
-            let (sum1, carry1) = value.overflowing_add(previous_carry as BigIntChunk);
-            let (sum2, carry2) = sum1.overflowing_add(right.data[index]);
+        let mut result = vec![];
+        let mut previous_overflow = false;
 
-            result.data.push(sum2);
+        for index in 0..min_length {
+            let left = left_data.get(index).unwrap_or(&0);
+            let right = right_data.get(index).unwrap_or(&0);
 
-            previous_carry = carry1 || carry2;
+            let (sum, overflow) = left.overflowing_add(*right);
+
+            let final_sum = if previous_overflow {
+                let (sum, overflow) = sum.overflowing_add(1);
+                previous_overflow = overflow;
+                sum
+            } else {
+                previous_overflow = overflow;
+                sum
+            };
+
+            result.push(final_sum);
         }
 
-        result
+        if previous_overflow {
+            result.push(previous_overflow as u8);
+        }
+
+        BigInt::new(result)
     }
 }
 
@@ -99,12 +116,27 @@ mod tests {
     }
 
     #[test]
-    fn should_add_2_bigint() {
+    fn should_add_2_bigint_with_same_data_length() {
         // Given
         let a = BigInt::new(vec![0xE4, 0x08]);
         let b = BigInt::new(vec![0xF1, 0x03]);
 
         let expected = BigInt::new(vec![0xD5, 0x0C]);
+
+        // When
+        let result = a + b;
+
+        // Then
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn should_add_2_bigint_with_different_data_length() {
+        // Given
+        let a = BigInt::new(vec![0xE4, 0x08]);
+        let b = BigInt::new(vec![0xF1, 0x03, 0x02]);
+
+        let expected = BigInt::new(vec![0xD5, 0x0C, 0x02]);
 
         // When
         let result = a + b;
