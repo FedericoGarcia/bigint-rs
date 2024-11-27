@@ -1,11 +1,14 @@
 type DataChunk = u8;
 type Data = Vec<DataChunk>;
 
+/// A big integer data structure.
 struct BigInt {
+    /// The underlying data structure used to store the big integer.
     data: Data,
 }
 
 impl BigInt {
+    /// Create a new `BigInt` from a byte array.
     fn from_bytes(data: Data) -> Self {
         BigInt { data }
     }
