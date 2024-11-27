@@ -1,11 +1,11 @@
-type BigIntChunk = u8;
+type DataChunk = u8;
 
 struct BigInt {
-    data: Vec<BigIntChunk>,
+    data: Vec<DataChunk>,
 }
 
 impl BigInt {
-    fn new(data: Vec<BigIntChunk>) -> Self {
+    fn new(data: Vec<DataChunk>) -> Self {
         BigInt { data }
     }
 }
