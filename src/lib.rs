@@ -1,11 +1,12 @@
 type DataChunk = u8;
+type Data = Vec<DataChunk>;
 
 struct BigInt {
-    data: Vec<DataChunk>,
+    data: Data,
 }
 
 impl BigInt {
-    fn new(data: Vec<DataChunk>) -> Self {
+    fn from_bytes(data: Data) -> Self {
         BigInt { data }
     }
 }
@@ -74,7 +75,7 @@ impl std::ops::Add for BigInt {
             result.push(1);
         }
 
-        BigInt::new(result)
+        BigInt::from_bytes(result)
     }
 }
 
@@ -85,7 +86,7 @@ mod tests {
     #[test]
     fn should_display_bigint_with_1_byte_in_base_10() {
         // Given
-        let bigint = BigInt::new(vec![0xE4]);
+        let bigint = BigInt::from_bytes(vec![0xE4]);
 
         // When
         let result = format!("{}", bigint);
@@ -97,7 +98,7 @@ mod tests {
     #[test]
     fn should_display_bigint_with_2_bytes_in_base_10() {
         // Given
-        let bigint = BigInt::new(vec![0xFF, 0xFF]);
+        let bigint = BigInt::from_bytes(vec![0xFF, 0xFF]);
 
         // When
         let result = format!("{}", bigint);
@@ -112,7 +113,7 @@ mod tests {
         let data = vec![0xE4, 0x08];
 
         // When
-        let bigint = BigInt::new(data);
+        let bigint = BigInt::from_bytes(data);
 
         // Then
         assert_eq!(bigint.data[0], 0xE4);
@@ -122,8 +123,8 @@ mod tests {
     #[test]
     fn should_be_equal() {
         // Given
-        let a = BigInt::new(vec![0xE4, 0x08]);
-        let b = BigInt::new(vec![0xE4, 0x08]);
+        let a = BigInt::from_bytes(vec![0xE4, 0x08]);
+        let b = BigInt::from_bytes(vec![0xE4, 0x08]);
 
         // When
         let result = a == b;
@@ -135,8 +136,8 @@ mod tests {
     #[test]
     fn should_not_be_equal() {
         // Given
-        let a = BigInt::new(vec![0xE4, 0x08]);
-        let b = BigInt::new(vec![0xE4]);
+        let a = BigInt::from_bytes(vec![0xE4, 0x08]);
+        let b = BigInt::from_bytes(vec![0xE4]);
 
         // When
         let result = a == b;
@@ -148,10 +149,10 @@ mod tests {
     #[test]
     fn should_add_2_bigint_with_same_data_length() {
         // Given
-        let a = BigInt::new(vec![0xE4, 0x08]);
-        let b = BigInt::new(vec![0xF1, 0x03]);
+        let a = BigInt::from_bytes(vec![0xE4, 0x08]);
+        let b = BigInt::from_bytes(vec![0xF1, 0x03]);
 
-        let expected = BigInt::new(vec![0xD5, 0x0C]);
+        let expected = BigInt::from_bytes(vec![0xD5, 0x0C]);
 
         // When
         let result = a + b;
@@ -163,10 +164,10 @@ mod tests {
     #[test]
     fn should_add_2_bigint_with_different_data_length() {
         // Given
-        let a = BigInt::new(vec![0xE4, 0x08]);
-        let b = BigInt::new(vec![0xF1, 0x03, 0x02]);
+        let a = BigInt::from_bytes(vec![0xE4, 0x08]);
+        let b = BigInt::from_bytes(vec![0xF1, 0x03, 0x02]);
 
-        let expected = BigInt::new(vec![0xD5, 0x0C, 0x02]);
+        let expected = BigInt::from_bytes(vec![0xD5, 0x0C, 0x02]);
 
         // When
         let result = a + b;
@@ -178,10 +179,10 @@ mod tests {
     #[test]
     fn should_add_2_bigint_with_different_data_length_and_overflow() {
         // Given
-        let a = BigInt::new(vec![0xFF, 0xFF]);
-        let b = BigInt::new(vec![0x01]);
+        let a = BigInt::from_bytes(vec![0xFF, 0xFF]);
+        let b = BigInt::from_bytes(vec![0x01]);
 
-        let expected = BigInt::new(vec![0x00, 0x00, 0x01]);
+        let expected = BigInt::from_bytes(vec![0x00, 0x00, 0x01]);
 
         // When
         let result = a + b;
@@ -193,10 +194,10 @@ mod tests {
     #[test]
     fn should_add_2_bigint_with_same_data_length_and_overflow() {
         // Given
-        let a = BigInt::new(vec![0xFF, 0xFF]);
-        let b = BigInt::new(vec![0x01, 0x01]);
+        let a = BigInt::from_bytes(vec![0xFF, 0xFF]);
+        let b = BigInt::from_bytes(vec![0x01, 0x01]);
 
-        let expected = BigInt::new(vec![0x00, 0x01, 0x01]);
+        let expected = BigInt::from_bytes(vec![0x00, 0x01, 0x01]);
 
         // When
         let result = a + b;
