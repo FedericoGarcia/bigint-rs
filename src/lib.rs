@@ -65,7 +65,7 @@ impl std::ops::Add for BigInt {
         }
 
         if previous_overflow {
-            result.push(previous_overflow as u8);
+            result.push(1);
         }
 
         BigInt::new(result)
@@ -137,6 +137,36 @@ mod tests {
         let b = BigInt::new(vec![0xF1, 0x03, 0x02]);
 
         let expected = BigInt::new(vec![0xD5, 0x0C, 0x02]);
+
+        // When
+        let result = a + b;
+
+        // Then
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn should_add_2_bigint_with_different_data_length_and_overflow() {
+        // Given
+        let a = BigInt::new(vec![0xFF, 0xFF]);
+        let b = BigInt::new(vec![0x01]);
+
+        let expected = BigInt::new(vec![0x00, 0x00, 0x01]);
+
+        // When
+        let result = a + b;
+
+        // Then
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn should_add_2_bigint_with_same_data_length_and_overflow() {
+        // Given
+        let a = BigInt::new(vec![0xFF, 0xFF]);
+        let b = BigInt::new(vec![0x01, 0x01]);
+
+        let expected = BigInt::new(vec![0x00, 0x01, 0x01]);
 
         // When
         let result = a + b;
