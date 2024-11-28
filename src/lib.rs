@@ -12,6 +12,25 @@ impl BigInt {
     fn from_bytes(data: Data) -> Self {
         BigInt { data }
     }
+
+    /// Create a new `BigInt` from a string, using the provided base.
+    fn from_string(data: String, base: u8) -> Self {
+        let data = data.as_bytes();
+        let mut result = vec![];
+
+        for byte in data {
+            let value = match byte {
+                b'0'..=b'9' => byte - b'0',
+                b'A'..=b'Z' => byte - b'A' + 10,
+                b'a'..=b'z' => byte - b'a' + 10,
+                _ => 0,
+            };
+
+            result.push(value);
+        }
+
+        BigInt { data: result }
+    }
 }
 
 impl std::fmt::Debug for BigInt {
@@ -127,6 +146,32 @@ mod constructor {
             // Then
             assert_eq!(bigint.data[0], 0xE4);
             assert_eq!(bigint.data[1], 0x08);
+        }
+    }
+
+    #[cfg(test)]
+    mod from_string {
+        use super::*;
+
+        #[test]
+        fn should_create_a_bigint_from_a_string() {
+            // Given
+            let data = "1234567890".to_string();
+
+            // When
+            let bigint = BigInt::from_string(data, 10);
+
+            // Then
+            assert_eq!(bigint.data[0], 1);
+            assert_eq!(bigint.data[1], 2);
+            assert_eq!(bigint.data[2], 3);
+            assert_eq!(bigint.data[3], 4);
+            assert_eq!(bigint.data[4], 5);
+            assert_eq!(bigint.data[5], 6);
+            assert_eq!(bigint.data[6], 7);
+            assert_eq!(bigint.data[7], 8);
+            assert_eq!(bigint.data[8], 9);
+            assert_eq!(bigint.data[9], 0);
         }
     }
 }
