@@ -1,15 +1,13 @@
-type DataChunk = u8;
-type Data = Vec<DataChunk>;
-
 /// A big integer data structure.
 struct BigInt {
     /// The underlying data structure used to store the big integer.
-    data: Data,
+    /// The data is stored in little-endian order.
+    data: Vec<u8>,
 }
 
 impl BigInt {
     /// Create a new `BigInt` from a byte array.
-    fn from_bytes(data: Data) -> Self {
+    fn from_bytes(data: Vec<u8>) -> Self {
         BigInt { data }
     }
 
@@ -70,31 +68,23 @@ impl std::ops::Add for BigInt {
         let left_data = &self.data;
         let right_data = &right.data;
 
-        let min_length = left_data.len().max(right_data.len());
+        let longest_number_length = left_data.len().max(right_data.len());
 
-        let mut result = vec![];
-        let mut previous_overflow = false;
+        let mut result = Vec::with_capacity(longest_number_length); // TODO: Check if should add 1 to capacity, is it more efficient?
+        let mut carry = 0u8;
 
-        for index in 0..min_length {
-            let left = left_data.get(index).unwrap_or(&0);
-            let right = right_data.get(index).unwrap_or(&0);
+        for index in 0..longest_number_length {
+            let left = *left_data.get(index).unwrap_or(&0) as u16;
+            let right = *right_data.get(index).unwrap_or(&0) as u16;
 
-            let (sum, overflow) = left.overflowing_add(*right);
+            let total = left + right + carry as u16;
 
-            let final_sum = if previous_overflow {
-                let (sum, overflow) = sum.overflowing_add(1);
-                previous_overflow = overflow;
-                sum
-            } else {
-                previous_overflow = overflow;
-                sum
-            };
-
-            result.push(final_sum);
+            result.push((total % 256) as u8);
+            carry = (total / 256) as u8;
         }
 
-        if previous_overflow {
-            result.push(1);
+        if carry > 0 {
+            result.push(carry);
         }
 
         BigInt::from_bytes(result)
