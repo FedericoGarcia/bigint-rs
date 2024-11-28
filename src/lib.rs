@@ -83,131 +83,156 @@ impl std::ops::Add for BigInt {
 }
 
 #[cfg(test)]
-mod tests {
+mod constructor {
     use super::*;
 
-    #[ignore]
-    #[test]
-    fn should_display_bigint_with_1_byte_in_base_10() {
-        // Given
-        let bigint = BigInt::from_bytes(vec![0xE4]);
+    #[cfg(test)]
+    mod from_bytes {
+        use super::*;
 
-        // When
-        let result = format!("{}", bigint);
+        #[ignore]
+        #[test]
+        fn should_display_bigint_with_1_byte_in_base_10() {
+            // Given
+            let bigint = BigInt::from_bytes(vec![0xE4]);
 
-        // Then
-        assert_eq!(result, "228");
+            // When
+            let result = format!("{}", bigint);
+
+            // Then
+            assert_eq!(result, "228");
+        }
+
+        #[ignore]
+        #[test]
+        fn should_display_bigint_with_2_bytes_in_base_10() {
+            // Given
+            let bigint = BigInt::from_bytes(vec![0xFF, 0xFF]);
+
+            // When
+            let result = format!("{}", bigint);
+
+            // Then
+            assert_eq!(result, "65536");
+        }
+
+        #[test]
+        fn should_create_a_bigint_from_2_bytes() {
+            // Given
+            let data = vec![0xE4, 0x08];
+
+            // When
+            let bigint = BigInt::from_bytes(data);
+
+            // Then
+            assert_eq!(bigint.data[0], 0xE4);
+            assert_eq!(bigint.data[1], 0x08);
+        }
     }
+}
 
-    #[ignore]
-    #[test]
-    fn should_display_bigint_with_2_bytes_in_base_10() {
-        // Given
-        let bigint = BigInt::from_bytes(vec![0xFF, 0xFF]);
+#[cfg(test)]
+mod comparators {
+    use super::*;
 
-        // When
-        let result = format!("{}", bigint);
+    #[cfg(test)]
+    mod equal {
+        use super::*;
 
-        // Then
-        assert_eq!(result, "65536");
+        #[test]
+        fn should_be_equal() {
+            // Given
+            let a = BigInt::from_bytes(vec![0xE4, 0x08]);
+            let b = BigInt::from_bytes(vec![0xE4, 0x08]);
+
+            // When
+            let result = a == b;
+
+            // Then
+            assert_eq!(result, true);
+        }
+
+        #[test]
+        fn should_not_be_equal() {
+            // Given
+            let a = BigInt::from_bytes(vec![0xE4, 0x08]);
+            let b = BigInt::from_bytes(vec![0xE4]);
+
+            // When
+            let result = a == b;
+
+            // Then
+            assert_eq!(result, false);
+        }
     }
+}
 
-    #[test]
-    fn should_create_a_bigint_from_2_bytes() {
-        // Given
-        let data = vec![0xE4, 0x08];
+#[cfg(test)]
+mod operators {
+    use super::*;
 
-        // When
-        let bigint = BigInt::from_bytes(data);
+    #[cfg(test)]
+    mod add {
+        use super::*;
 
-        // Then
-        assert_eq!(bigint.data[0], 0xE4);
-        assert_eq!(bigint.data[1], 0x08);
-    }
+        #[test]
+        fn should_add_2_bigint_with_same_data_length() {
+            // Given
+            let a = BigInt::from_bytes(vec![0xE4, 0x08]);
+            let b = BigInt::from_bytes(vec![0xF1, 0x03]);
 
-    #[test]
-    fn should_be_equal() {
-        // Given
-        let a = BigInt::from_bytes(vec![0xE4, 0x08]);
-        let b = BigInt::from_bytes(vec![0xE4, 0x08]);
+            let expected = BigInt::from_bytes(vec![0xD5, 0x0C]);
 
-        // When
-        let result = a == b;
+            // When
+            let result = a + b;
 
-        // Then
-        assert_eq!(result, true);
-    }
+            // Then
+            assert_eq!(result, expected);
+        }
 
-    #[test]
-    fn should_not_be_equal() {
-        // Given
-        let a = BigInt::from_bytes(vec![0xE4, 0x08]);
-        let b = BigInt::from_bytes(vec![0xE4]);
+        #[test]
+        fn should_add_2_bigint_with_different_data_length() {
+            // Given
+            let a = BigInt::from_bytes(vec![0xE4, 0x08]);
+            let b = BigInt::from_bytes(vec![0xF1, 0x03, 0x02]);
 
-        // When
-        let result = a == b;
+            let expected = BigInt::from_bytes(vec![0xD5, 0x0C, 0x02]);
 
-        // Then
-        assert_eq!(result, false);
-    }
+            // When
+            let result = a + b;
 
-    #[test]
-    fn should_add_2_bigint_with_same_data_length() {
-        // Given
-        let a = BigInt::from_bytes(vec![0xE4, 0x08]);
-        let b = BigInt::from_bytes(vec![0xF1, 0x03]);
+            // Then
+            assert_eq!(result, expected);
+        }
 
-        let expected = BigInt::from_bytes(vec![0xD5, 0x0C]);
+        #[test]
+        fn should_add_2_bigint_with_different_data_length_and_overflow() {
+            // Given
+            let a = BigInt::from_bytes(vec![0xFF, 0xFF]);
+            let b = BigInt::from_bytes(vec![0x01]);
 
-        // When
-        let result = a + b;
+            let expected = BigInt::from_bytes(vec![0x00, 0x00, 0x01]);
 
-        // Then
-        assert_eq!(result, expected);
-    }
+            // When
+            let result = a + b;
 
-    #[test]
-    fn should_add_2_bigint_with_different_data_length() {
-        // Given
-        let a = BigInt::from_bytes(vec![0xE4, 0x08]);
-        let b = BigInt::from_bytes(vec![0xF1, 0x03, 0x02]);
+            // Then
+            assert_eq!(result, expected);
+        }
 
-        let expected = BigInt::from_bytes(vec![0xD5, 0x0C, 0x02]);
+        #[test]
+        fn should_add_2_bigint_with_same_data_length_and_overflow() {
+            // Given
+            let a = BigInt::from_bytes(vec![0xFF, 0xFF]);
+            let b = BigInt::from_bytes(vec![0x01, 0x01]);
 
-        // When
-        let result = a + b;
+            let expected = BigInt::from_bytes(vec![0x00, 0x01, 0x01]);
 
-        // Then
-        assert_eq!(result, expected);
-    }
+            // When
+            let result = a + b;
 
-    #[test]
-    fn should_add_2_bigint_with_different_data_length_and_overflow() {
-        // Given
-        let a = BigInt::from_bytes(vec![0xFF, 0xFF]);
-        let b = BigInt::from_bytes(vec![0x01]);
-
-        let expected = BigInt::from_bytes(vec![0x00, 0x00, 0x01]);
-
-        // When
-        let result = a + b;
-
-        // Then
-        assert_eq!(result, expected);
-    }
-
-    #[test]
-    fn should_add_2_bigint_with_same_data_length_and_overflow() {
-        // Given
-        let a = BigInt::from_bytes(vec![0xFF, 0xFF]);
-        let b = BigInt::from_bytes(vec![0x01, 0x01]);
-
-        let expected = BigInt::from_bytes(vec![0x00, 0x01, 0x01]);
-
-        // When
-        let result = a + b;
-
-        // Then
-        assert_eq!(result, expected);
+            // Then
+            assert_eq!(result, expected);
+        }
     }
 }
