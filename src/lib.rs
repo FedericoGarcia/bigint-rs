@@ -109,32 +109,6 @@ mod constructor {
     mod from_bytes {
         use super::*;
 
-        #[ignore]
-        #[test]
-        fn should_display_bigint_with_1_byte_in_base_10() {
-            // Given
-            let bigint = BigInt::from_bytes(vec![0xE4]);
-
-            // When
-            let result = format!("{}", bigint);
-
-            // Then
-            assert_eq!(result, "228");
-        }
-
-        #[ignore]
-        #[test]
-        fn should_display_bigint_with_2_bytes_in_base_10() {
-            // Given
-            let bigint = BigInt::from_bytes(vec![0xFF, 0xFF]);
-
-            // When
-            let result = format!("{}", bigint);
-
-            // Then
-            assert_eq!(result, "65536");
-        }
-
         #[test]
         fn should_create_a_bigint_from_2_bytes() {
             // Given
@@ -173,6 +147,37 @@ mod constructor {
             assert_eq!(bigint.data[8], 9);
             assert_eq!(bigint.data[9], 0);
         }
+    }
+}
+
+#[cfg(test)]
+mod display {
+    use super::*;
+
+    #[ignore]
+    #[test]
+    fn should_display_bigint_with_1_byte_in_base_10() {
+        // Given
+        let bigint = BigInt::from_bytes(vec![0xE4]);
+
+        // When
+        let result = format!("{}", bigint);
+
+        // Then
+        assert_eq!(result, "228");
+    }
+
+    #[ignore]
+    #[test]
+    fn should_display_bigint_with_2_bytes_in_base_10() {
+        // Given
+        let bigint = BigInt::from_bytes(vec![0xFF, 0xFF]);
+
+        // When
+        let result = format!("{}", bigint);
+
+        // Then
+        assert_eq!(result, "65536");
     }
 }
 
