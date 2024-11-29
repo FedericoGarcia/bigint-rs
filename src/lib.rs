@@ -29,6 +29,11 @@ impl BigInt {
 
         BigInt { data: result }
     }
+
+    /// Returns the number encoded as a string in the provided base.
+    fn to_string(&self, base: u8) -> String {
+        todo!()
+    }
 }
 
 impl std::fmt::Debug for BigInt {
@@ -50,8 +55,8 @@ impl std::fmt::Debug for BigInt {
 }
 
 impl std::fmt::Display for BigInt {
-    fn fmt(&self, _formatter: &mut std::fmt::Formatter<'_>) -> Result<(), std::fmt::Error> {
-        todo!()
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> Result<(), std::fmt::Error> {
+        self.to_string(10).fmt(formatter)
     }
 }
 
@@ -144,30 +149,48 @@ mod constructor {
 mod display {
     use super::*;
 
-    #[ignore]
-    #[test]
-    fn should_display_bigint_with_1_byte_in_base_10() {
-        // Given
-        let bigint = BigInt::from_bytes(vec![0xE4]);
+    #[cfg(test)]
+    mod to_string {
+        use super::*;
 
-        // When
-        let result = format!("{}", bigint);
+        #[ignore]
+        #[test]
+        fn should_display_bigint_with_0_bytes_in_base_10() {
+            // Given
+            let bigint = BigInt::from_bytes(vec![]);
 
-        // Then
-        assert_eq!(result, "228");
-    }
+            // When
+            let result = format!("{}", bigint);
 
-    #[ignore]
-    #[test]
-    fn should_display_bigint_with_2_bytes_in_base_10() {
-        // Given
-        let bigint = BigInt::from_bytes(vec![0xFF, 0xFF]);
+            // Then
+            assert_eq!(result, "0");
+        }
 
-        // When
-        let result = format!("{}", bigint);
+        #[ignore]
+        #[test]
+        fn should_display_bigint_with_1_byte_in_base_10() {
+            // Given
+            let bigint = BigInt::from_bytes(vec![0xE4]);
 
-        // Then
-        assert_eq!(result, "65536");
+            // When
+            let result = format!("{}", bigint);
+
+            // Then
+            assert_eq!(result, "228");
+        }
+
+        #[ignore]
+        #[test]
+        fn should_display_bigint_with_2_bytes_in_base_10() {
+            // Given
+            let bigint = BigInt::from_bytes(vec![0xFF, 0xFF]);
+
+            // When
+            let result = format!("{}", bigint);
+
+            // Then
+            assert_eq!(result, "65536");
+        }
     }
 }
 
