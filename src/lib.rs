@@ -1,3 +1,10 @@
+enum Base {
+    Binary,
+    Octal,
+    Decimal,
+    Hexadecimal,
+}
+
 /// A big integer data structure.
 struct BigInt {
     /// The underlying data structure used to store the big integer.
@@ -12,7 +19,7 @@ impl BigInt {
     }
 
     /// Create a new `BigInt` from a string, using the provided base.
-    fn from_string(data: String, base: u8) -> Self {
+    fn from_string(data: String, base: Base) -> Self {
         let data = data.as_bytes();
         let mut result = vec![];
 
@@ -27,11 +34,11 @@ impl BigInt {
             result.push(value);
         }
 
-        BigInt { data: result }
+        Self::from_bytes(result)
     }
 
     /// Returns the number encoded as a string in the provided base.
-    fn to_string(&self, base: u8) -> String {
+    fn to_string(&self, base: Base) -> String {
         todo!()
     }
 }
@@ -56,7 +63,7 @@ impl std::fmt::Debug for BigInt {
 
 impl std::fmt::Display for BigInt {
     fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> Result<(), std::fmt::Error> {
-        self.to_string(10).fmt(formatter)
+        self.to_string(Base::Decimal).fmt(formatter)
     }
 }
 
@@ -128,7 +135,7 @@ mod constructor {
             let data = "1234567890".to_string();
 
             // When
-            let bigint = BigInt::from_string(data, 10);
+            let bigint = BigInt::from_string(data, Base::Decimal);
 
             // Then
             assert_eq!(bigint.data[0], 1);
