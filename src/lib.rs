@@ -1,4 +1,4 @@
-enum Base {
+pub enum Base {
     Binary,
     Octal,
     Decimal,
@@ -17,7 +17,7 @@ impl Base {
 }
 
 /// A big integer data structure.
-struct BigInt {
+pub struct BigInt {
     /// The underlying data structure used to store the big integer.
     /// The data is stored in little-endian order.
     data: Vec<u8>,
