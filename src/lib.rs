@@ -6,6 +6,7 @@ pub enum Base {
 }
 
 impl Base {
+    /// Returns the radix of the base.
     fn to_radix(&self) -> u8 {
         match self {
             Base::Binary => 2,
@@ -50,6 +51,10 @@ impl BigInt {
 
     /// Returns the number encoded as a string in the provided base.
     fn to_string(&self, base: Base) -> String {
+        if self.data.is_empty() {
+            return "0".to_string();
+        }
+
         todo!()
     }
 }
@@ -171,7 +176,6 @@ mod display {
     mod to_string {
         use super::*;
 
-        #[ignore]
         #[test]
         fn should_display_bigint_with_0_bytes_in_base_10() {
             // Given
