@@ -5,6 +5,17 @@ enum Base {
     Hexadecimal,
 }
 
+impl Base {
+    fn to_radix(&self) -> u8 {
+        match self {
+            Base::Binary => 2,
+            Base::Octal => 8,
+            Base::Decimal => 10,
+            Base::Hexadecimal => 16,
+        }
+    }
+}
+
 /// A big integer data structure.
 struct BigInt {
     /// The underlying data structure used to store the big integer.
