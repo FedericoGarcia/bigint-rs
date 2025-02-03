@@ -37,4 +37,16 @@ mod bigint {
         assert_eq!(bigint_value.to_string(bigint::Base::Decimal), "1");
         assert_eq!(bigint_value.to_string(bigint::Base::Hexadecimal), "1");
     }
+
+    #[test]
+    fn should_create_bigint_from_a_string_with_a_positive_number() {
+        // When
+        let bigint_value = bigint::BigInt::from_string("123".to_string(), bigint::Base::Decimal);
+
+        // Then
+        assert_eq!(bigint_value.to_string(bigint::Base::Binary), "1111011");
+        assert_eq!(bigint_value.to_string(bigint::Base::Octal), "173");
+        assert_eq!(bigint_value.to_string(bigint::Base::Decimal), "123");
+        assert_eq!(bigint_value.to_string(bigint::Base::Hexadecimal), "7B");
+    }
 }
