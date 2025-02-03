@@ -63,9 +63,10 @@ impl BigInt {
             return "0".to_string();
         }
 
+        let mut digits = Vec::new();
+
         let radix = base.to_radix();
         let mut temp = self.clone();
-        let mut digits = Vec::new();
 
         while !temp.is_zero() {
             let (quotient, remainder) = temp.divide_by_small(radix);
