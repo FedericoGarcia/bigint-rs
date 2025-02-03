@@ -188,7 +188,6 @@ mod display {
             assert_eq!(result, "0");
         }
 
-        #[ignore]
         #[test]
         fn should_display_bigint_with_1_byte_in_base_10() {
             // Given
@@ -201,7 +200,6 @@ mod display {
             assert_eq!(result, "228");
         }
 
-        #[ignore]
         #[test]
         fn should_display_bigint_with_2_bytes_in_base_10() {
             // Given
@@ -211,7 +209,7 @@ mod display {
             let result = format!("{}", bigint);
 
             // Then
-            assert_eq!(result, "65536");
+            assert_eq!(result, "65535");
         }
     }
 }
