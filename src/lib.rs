@@ -22,18 +22,22 @@ pub struct BigInt {
     /// The underlying data structure used to store the big integer.
     /// The data is stored in little-endian order.
     data: Vec<u8>,
+
+    /// Sign of the big integer.
+    /// If `true`, the big integer is negative, otherwise it is positive.
+    sign: bool,
 }
 
 impl BigInt {
     /// Create a new `BigInt` from a byte array.
-    pub fn from_bytes(data: Vec<u8>) -> Self {
-        BigInt { data }
+    pub fn from_bytes(data: Vec<u8>, sign: bool) -> Self {
+        BigInt { data, sign }
     }
 
     /// Create a new `BigInt` from a string, using the provided base.
     pub fn from_string(data: String, base: Base) -> Self {
         let radix = base.to_radix();
-        let mut result = BigInt::from_bytes(vec![]);
+        let mut result = BigInt::from_bytes(vec![], false);
 
         for character in data.chars() {
             let value = match character {
@@ -47,7 +51,7 @@ impl BigInt {
                 panic!("Invalid character {} for base {}", character, radix);
             }
 
-            result = result.multiply_by_small(radix) + BigInt::from_bytes(vec![value]);
+            result = result.multiply_by_small(radix) + BigInt::from_bytes(vec![value], false);
         }
 
         result
@@ -101,7 +105,7 @@ impl BigInt {
     /// Multiply BigInt by a small number (u8).
     fn multiply_by_small(&self, multiplier: u8) -> BigInt {
         if self.is_zero() {
-            return BigInt::from_bytes(vec![]);
+            return BigInt::from_bytes(vec![], false);
         }
 
         let mut result = Vec::with_capacity(self.data.len() + 1);
@@ -118,13 +122,13 @@ impl BigInt {
             carry /= 256;
         }
 
-        BigInt::from_bytes(result)
+        BigInt::from_bytes(result, false)
     }
 
     /// Divide BigInt by a small divisor (u8) and return the pair (quotient, remainder).
     fn divide_by_small(&self, divisor: u8) -> (BigInt, u8) {
         if self.is_zero() {
-            return (BigInt::from_bytes(vec![]), 0);
+            return (BigInt::from_bytes(vec![], false), 0);
         }
 
         let mut remainder: u16 = 0;
@@ -142,7 +146,7 @@ impl BigInt {
             quotient.pop();
         }
 
-        (BigInt::from_bytes(quotient), remainder as u8)
+        (BigInt::from_bytes(quotient, false), remainder as u8)
     }
 }
 
@@ -150,6 +154,7 @@ impl std::clone::Clone for BigInt {
     fn clone(&self) -> Self {
         BigInt {
             data: self.data.clone(),
+            sign: self.sign,
         }
     }
 }
@@ -180,7 +185,19 @@ impl std::fmt::Display for BigInt {
 
 impl std::cmp::PartialEq for BigInt {
     fn eq(&self, other: &Self) -> bool {
-        self.data == other.data
+        if self.is_zero() && other.is_zero() {
+            return true;
+        }
+
+        if self.sign != other.sign {
+            return false;
+        }
+
+        if self.data != other.data {
+            return false;
+        }
+
+        return true;
     }
 }
 
@@ -210,7 +227,7 @@ impl std::ops::Add for BigInt {
             result.push(carry);
         }
 
-        BigInt::from_bytes(result)
+        BigInt::from_bytes(result, false)
     }
 }
 
@@ -228,7 +245,7 @@ mod constructor {
             let data = vec![0xE4, 0x08];
 
             // When
-            let bigint = BigInt::from_bytes(data.clone());
+            let bigint = BigInt::from_bytes(data.clone(), false);
 
             // Then
             assert_eq!(bigint.data[0], 0xE4);
@@ -277,7 +294,7 @@ mod display {
         #[test]
         fn should_display_bigint_with_0_bytes_in_base_10() {
             // Given
-            let bigint = BigInt::from_bytes(vec![]);
+            let bigint = BigInt::from_bytes(vec![], false);
 
             // When
             let result = format!("{}", bigint);
@@ -289,7 +306,7 @@ mod display {
         #[test]
         fn should_display_bigint_with_1_byte_in_base_10() {
             // Given
-            let bigint = BigInt::from_bytes(vec![0xE4]);
+            let bigint = BigInt::from_bytes(vec![0xE4], false);
 
             // When
             let result = format!("{}", bigint);
@@ -301,7 +318,7 @@ mod display {
         #[test]
         fn should_display_bigint_with_2_bytes_in_base_10() {
             // Given
-            let bigint = BigInt::from_bytes(vec![0xFF, 0xFF]);
+            let bigint = BigInt::from_bytes(vec![0xFF, 0xFF], false);
 
             // When
             let result = format!("{}", bigint);
@@ -323,8 +340,8 @@ mod comparators {
         #[test]
         fn should_be_equal() {
             // Given
-            let a = BigInt::from_bytes(vec![0xE4, 0x08]);
-            let b = BigInt::from_bytes(vec![0xE4, 0x08]);
+            let a = BigInt::from_bytes(vec![0xE4, 0x08], false);
+            let b = BigInt::from_bytes(vec![0xE4, 0x08], false);
 
             // When
             let result = a == b;
@@ -336,14 +353,61 @@ mod comparators {
         #[test]
         fn should_not_be_equal() {
             // Given
-            let a = BigInt::from_bytes(vec![0xE4, 0x08]);
-            let b = BigInt::from_bytes(vec![0xE4]);
+            let a = BigInt::from_bytes(vec![0xE4, 0x08], false);
+            let b = BigInt::from_bytes(vec![0xE4], false);
 
             // When
             let result = a == b;
 
             // Then
             assert_eq!(result, false);
+        }
+
+        #[test]
+        fn should_not_be_equal_with_different_sign() {
+            // Given
+            let a = BigInt::from_bytes(vec![0xE4, 0x08], false);
+            let b = BigInt::from_bytes(vec![0xE4, 0x08], false);
+            let b = BigInt {
+                data: b.data,
+                sign: true,
+            };
+
+            // When
+            let result = a == b;
+
+            // Then
+            assert_eq!(result, false);
+        }
+
+        #[test]
+        fn should_be_equal_with_empty_data() {
+            // Given
+            let a = BigInt::from_bytes(vec![], false);
+            let b = BigInt::from_bytes(vec![], false);
+            let b = BigInt {
+                data: b.data,
+                sign: true,
+            };
+
+            // When
+            let result = a == b;
+
+            // Then
+            assert_eq!(result, true);
+        }
+
+        #[test]
+        fn should_be_equal_with_zero() {
+            // Given
+            let a = BigInt::from_bytes(vec![0], false);
+            let b = BigInt::from_bytes(vec![], false);
+
+            // When
+            let result = a == b;
+
+            // Then
+            assert_eq!(result, true);
         }
     }
 }
@@ -359,10 +423,10 @@ mod operators {
         #[test]
         fn should_add_2_bigint_with_same_data_length() {
             // Given
-            let a = BigInt::from_bytes(vec![0xE4, 0x08]);
-            let b = BigInt::from_bytes(vec![0xF1, 0x03]);
+            let a = BigInt::from_bytes(vec![0xE4, 0x08], false);
+            let b = BigInt::from_bytes(vec![0xF1, 0x03], false);
 
-            let expected = BigInt::from_bytes(vec![0xD5, 0x0C]);
+            let expected = BigInt::from_bytes(vec![0xD5, 0x0C], false);
 
             // When
             let result = a + b;
@@ -374,10 +438,10 @@ mod operators {
         #[test]
         fn should_add_2_bigint_with_different_data_length() {
             // Given
-            let a = BigInt::from_bytes(vec![0xE4, 0x08]);
-            let b = BigInt::from_bytes(vec![0xF1, 0x03, 0x02]);
+            let a = BigInt::from_bytes(vec![0xE4, 0x08], false);
+            let b = BigInt::from_bytes(vec![0xF1, 0x03, 0x02], false);
 
-            let expected = BigInt::from_bytes(vec![0xD5, 0x0C, 0x02]);
+            let expected = BigInt::from_bytes(vec![0xD5, 0x0C, 0x02], false);
 
             // When
             let result = a + b;
@@ -389,10 +453,10 @@ mod operators {
         #[test]
         fn should_add_2_bigint_with_different_data_length_and_overflow() {
             // Given
-            let a = BigInt::from_bytes(vec![0xFF, 0xFF]);
-            let b = BigInt::from_bytes(vec![0x01]);
+            let a = BigInt::from_bytes(vec![0xFF, 0xFF], false);
+            let b = BigInt::from_bytes(vec![0x01], false);
 
-            let expected = BigInt::from_bytes(vec![0x00, 0x00, 0x01]);
+            let expected = BigInt::from_bytes(vec![0x00, 0x00, 0x01], false);
 
             // When
             let result = a + b;
@@ -404,10 +468,10 @@ mod operators {
         #[test]
         fn should_add_2_bigint_with_same_data_length_and_overflow() {
             // Given
-            let a = BigInt::from_bytes(vec![0xFF, 0xFF]);
-            let b = BigInt::from_bytes(vec![0x01, 0x01]);
+            let a = BigInt::from_bytes(vec![0xFF, 0xFF], false);
+            let b = BigInt::from_bytes(vec![0x01, 0x01], false);
 
-            let expected = BigInt::from_bytes(vec![0x00, 0x01, 0x01]);
+            let expected = BigInt::from_bytes(vec![0x00, 0x01, 0x01], false);
 
             // When
             let result = a + b;
@@ -429,7 +493,7 @@ mod utils {
         #[test]
         fn should_return_true_when_bigint_is_zero() {
             // Given
-            let bigint = BigInt::from_bytes(vec![]);
+            let bigint = BigInt::from_bytes(vec![], false);
 
             // When
             let result = bigint.is_zero();
@@ -441,7 +505,7 @@ mod utils {
         #[test]
         fn should_return_true_when_bigint_is_zero_with_data() {
             // Given
-            let bigint = BigInt::from_bytes(vec![0, 0, 0]);
+            let bigint = BigInt::from_bytes(vec![0, 0, 0], false);
 
             // When
             let result = bigint.is_zero();
@@ -453,7 +517,7 @@ mod utils {
         #[test]
         fn should_return_false_when_bigint_is_not_zero() {
             // Given
-            let bigint = BigInt::from_bytes(vec![0, 0, 1]);
+            let bigint = BigInt::from_bytes(vec![0, 0, 1], false);
 
             // When
             let result = bigint.is_zero();
@@ -469,8 +533,8 @@ mod utils {
         #[test]
         fn should_multiply_bigint_by_10() {
             // Given
-            let bigint = BigInt::from_bytes(vec![0xD2, 0x04]);
-            let expected = BigInt::from_bytes(vec![0x34, 0x30]);
+            let bigint = BigInt::from_bytes(vec![0xD2, 0x04], false);
+            let expected = BigInt::from_bytes(vec![0x34, 0x30], false);
 
             // When
             let result = bigint.multiply_by_small(10);
@@ -486,8 +550,8 @@ mod utils {
         #[test]
         fn should_divide_bigint_by_10() {
             // Given
-            let bigint = BigInt::from_bytes(vec![0x39, 0x30]);
-            let expected = BigInt::from_bytes(vec![0xD2, 0x04]);
+            let bigint = BigInt::from_bytes(vec![0x39, 0x30], false);
+            let expected = BigInt::from_bytes(vec![0xD2, 0x04], false);
 
             // When
             let (quotient, _) = bigint.divide_by_small(10);
@@ -499,7 +563,7 @@ mod utils {
         #[test]
         fn should_divide_bigint_by_10_with_remainder() {
             // Given
-            let bigint = BigInt::from_bytes(vec![0x39, 0x30]);
+            let bigint = BigInt::from_bytes(vec![0x39, 0x30], false);
             let expected = 5;
 
             // When
