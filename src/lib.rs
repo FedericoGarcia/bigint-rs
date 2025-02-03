@@ -96,7 +96,7 @@ impl BigInt {
             return true;
         }
 
-        if self.data.iter().all(|&x| x == 0) {
+        if self.data.iter().all(|&byte| byte == 0) {
             return true;
         }
 
