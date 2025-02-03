@@ -26,12 +26,12 @@ pub struct BigInt {
 
 impl BigInt {
     /// Create a new `BigInt` from a byte array.
-    fn from_bytes(data: Vec<u8>) -> Self {
+    pub fn from_bytes(data: Vec<u8>) -> Self {
         BigInt { data }
     }
 
     /// Create a new `BigInt` from a string, using the provided base.
-    fn from_string(data: String, base: Base) -> Self {
+    pub fn from_string(data: String, base: Base) -> Self {
         let radix = base.to_radix();
         let mut result = BigInt::from_bytes(vec![]);
 
@@ -54,7 +54,7 @@ impl BigInt {
     }
 
     /// Returns the number encoded as a string in the provided base.
-    fn to_string(&self, base: Base) -> String {
+    pub fn to_string(&self, base: Base) -> String {
         if self.is_zero() {
             return "0".to_string();
         }
