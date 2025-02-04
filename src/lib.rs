@@ -42,9 +42,16 @@ impl BigInt {
         for character in data.chars() {
             let value = match character {
                 '0'..='9' => character as u8 - b'0',
-                'A'..='Z' => character as u8 - b'A' + 10,
                 'a'..='z' => character as u8 - b'a' + 10,
-                _ => continue,
+                'A'..='Z' => character as u8 - b'A' + 10,
+                '-' => {
+                    if result.is_zero() {
+                        result.sign = true;
+                    }
+
+                    continue;
+                }
+                _ => panic!("Invalid character {}", character),
             };
 
             if value >= radix {
@@ -259,7 +266,31 @@ mod constructor {
         use super::*;
 
         #[test]
-        fn should_create_a_bigint_from_a_string() {
+        fn should_create_a_bigint_from_a_string_binary() {
+            // Given
+            let data = "101010101".to_string();
+
+            // When
+            let bigint = BigInt::from_string(data, Base::Binary);
+
+            // Then
+            assert_eq!(bigint.data, vec![0x55, 0x01]);
+        }
+
+        #[test]
+        fn should_create_a_bigint_from_a_string_octal() {
+            // Given
+            let data = "1234567".to_string();
+
+            // When
+            let bigint = BigInt::from_string(data, Base::Octal);
+
+            // Then
+            assert_eq!(bigint.data, vec![0x77, 0x39, 0x05]);
+        }
+
+        #[test]
+        fn should_create_a_bigint_from_a_string_decimal() {
             // Given
             let data = "1234567890".to_string();
 
